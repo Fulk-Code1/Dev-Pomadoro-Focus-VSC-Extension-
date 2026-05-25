@@ -34,5 +34,13 @@ export class StatusBarTimer {
         this.item.tooltip = 'Click to skip break';
     }
 
+    setPaused(remainingSeconds: number) {
+        const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+        const s = (remainingSeconds % 60).toString().padStart(2, '0');
+        this.item.text = `$(debug-pause) ${m}:${s}  Пауза`;
+        this.item.backgroundColor = undefined; 
+        this.item.tooltip = 'Click to resume';
+    }
+
     dispose() { this.item.dispose(); }
 }
