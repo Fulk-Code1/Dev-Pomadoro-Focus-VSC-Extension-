@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { StatusBarTimer } from './statusBar';
+import { enableDND, disableDND } from './doNotDisturb';
 
 export type Phase = 'idle' | 'focus' | 'break' | 'paused';
 
@@ -12,7 +13,7 @@ export class PomodoroTimer {
 
     constructor(
         private statusBar: StatusBarTimer,
-        private settings: () => { focusMin: number; breakMin: number; autoStartBreak: boolean },
+        private settings: () => { focusMin: number; breakMin: number; autoStartBreak: boolean; doNotDisturb: boolean },
         onPomodoroComplete: () => void
     ) {
         this.onPomodoroComplete = onPomodoroComplete;
@@ -23,6 +24,12 @@ export class PomodoroTimer {
             this.phase = 'focus';
             this.remaining = this.settings().focusMin * 60;
         }
+        
+        // Включаем DND только если мы в фокусе и настройка активирована
+        if (this.phase === 'focus' && this.settings().doNotDisturb) {
+            enableDND().catch(console.error);
+        }
+        
         this.interval = setInterval(() => this.tick(), 1000);
     }
 
@@ -34,6 +41,9 @@ export class PomodoroTimer {
         this.pausedPhase = this.phase;
         this.phase = 'paused';
         this.statusBar.setPaused(this.remaining);
+        
+        // Снимаем блокировку на время паузы
+        disableDND().catch(console.error);
     }
 
     resume() {
@@ -41,7 +51,7 @@ export class PomodoroTimer {
             return;
         }
         this.phase = this.pausedPhase!;
-        this.start();
+        this.start(); // start() сам проверит фазу и снова включит DND, если нужно
     }
 
     reset() {
@@ -51,6 +61,7 @@ export class PomodoroTimer {
         const s = this.settings();
         this.remaining = this.phase === 'break' ? s.breakMin * 60 : s.focusMin * 60;
         this.phase = this.phase === 'break' ? 'break' : 'focus';
+        disableDND().catch(console.error);
     }
 
     skip() {
@@ -59,13 +70,22 @@ export class PomodoroTimer {
         }
         this.phase = 'idle';
         this.statusBar.setIdle();
+        disableDND().catch(console.error);
     }
 
     private tick() {
         this.remaining--;
         
         if (this.phase === 'focus') {
-            this.statusBar.setFocus(this.remaining);
+            // Добавляем иконку перечеркнутого колокольчика, если DND включен
+            if (this.settings().doNotDisturb) {
+                const m = Math.floor(this.remaining / 60).toString().padStart(2, '0');
+                const s = (this.remaining % 60).toString().padStart(2, '0');
+                // Переопределяем текст статус-бара напрямую, чтобы добавить иконку
+                this.statusBar['item'].text = `$(clock) ${m}:${s}  Focus  $(bell-slash)`;
+            } else {
+                this.statusBar.setFocus(this.remaining);
+            }
         } else {
             this.statusBar.setBreak(this.remaining);
         }
@@ -76,7 +96,9 @@ export class PomodoroTimer {
             }
             
             if (this.phase === 'focus') {
+                disableDND().catch(console.error); // Снимаем DND при завершении фокуса
                 this.onPomodoroComplete();
+                
                 vscode.window.showInformationMessage(
                     '🍅 Focus session complete! Time for a break.',
                     'Start Break', 'Later'
@@ -101,17 +123,12 @@ export class PomodoroTimer {
         }
     }
 
-    getPhase() {
-        return this.phase;
-    }
-
-    getRemaining() {
-        return this.remaining;
-    }
-
-    dispose() {
+    getPhase() { return this.phase; }
+    getRemaining() { return this.remaining; }
+    dispose() { 
         if (this.interval) {
             clearInterval(this.interval);
         }
+        disableDND().catch(console.error);
     }
 }

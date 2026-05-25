@@ -10,7 +10,6 @@ export function activate(context: vscode.ExtensionContext) {
     const statusBarTimer = new StatusBarTimer();
     const statsTracker = new StatsTracker();
     
-    // Инициализация Webview боковой панели
     const sidebarProvider = new SidebarProvider(context.extensionUri);
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
@@ -19,7 +18,8 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
     
-    const getSettings = () => ({ focusMin: 1, breakMin: 5, autoStartBreak: false });
+    // Единое объявление настроек с включенным DND
+    const getSettings = () => ({ focusMin: 1, breakMin: 5, autoStartBreak: false, doNotDisturb: true });
     
     const onPomodoroComplete = () => {
         const stats = statsTracker.getStats();
@@ -29,13 +29,13 @@ export function activate(context: vscode.ExtensionContext) {
         statsTracker.stopTracking();
     };
 
+    // Единое объявление таймера
     const timer = new PomodoroTimer(statusBarTimer, getSettings, onPomodoroComplete);
 
     context.subscriptions.push(statusBarTimer);
     context.subscriptions.push(statsTracker);
     context.subscriptions.push({ dispose: () => timer.dispose() });
 
-    // Каждую секунду обновляем Webview данными (согласно ТЗ)
     setInterval(() => {
         sidebarProvider.updatePanel(
             timer.getPhase(),
