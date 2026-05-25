@@ -19,7 +19,25 @@
         "command": "devfocus.toggleTimer",
         "title": "Dev Focus: Toggle Timer"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "dev-focus",
+          "title": "Dev Focus",
+          "icon": "resources/tomato.svg"
+        }
+      ]
+    },
+    "views": {
+      "dev-focus": [
+        {
+          "type": "webview",
+          "id": "devfocus.panel",
+          "name": "Dev Focus"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
