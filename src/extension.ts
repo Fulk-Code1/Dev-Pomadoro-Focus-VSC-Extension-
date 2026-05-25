@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { StatusBarTimer } from './statusBar';
 import { PomodoroTimer } from './timer';
 import { StatsTracker } from './statsTracker';
+import { SidebarProvider } from './sidebarProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "dev-focus" is now active!');
@@ -9,14 +10,19 @@ export function activate(context: vscode.ExtensionContext) {
     const statusBarTimer = new StatusBarTimer();
     const statsTracker = new StatsTracker();
     
-    // ВРЕМЕННО ставим 1 минуту фокуса для быстрого тестирования
+    // Инициализация Webview боковой панели
+    const sidebarProvider = new SidebarProvider(context.extensionUri);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            SidebarProvider.viewType,
+            sidebarProvider
+        )
+    );
+    
     const getSettings = () => ({ focusMin: 1, breakMin: 5, autoStartBreak: false });
     
     const onPomodoroComplete = () => {
         const stats = statsTracker.getStats();
-        console.log('🍅 Помидор завершён! Статистика:', stats);
-        
-        // Показываем статистику прямо в уведомлении для наглядности
         vscode.window.showInformationMessage(
             `Статистика сессии: ${stats.linesAdded} строк, ${stats.filesOpened} файлов, Топ язык: ${stats.topLanguage}`
         );
@@ -29,7 +35,15 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(statsTracker);
     context.subscriptions.push({ dispose: () => timer.dispose() });
 
-    // Логика клика по статус-бару
+    // Каждую секунду обновляем Webview данными (согласно ТЗ)
+    setInterval(() => {
+        sidebarProvider.updatePanel(
+            timer.getPhase(),
+            timer.getRemaining(),
+            statsTracker.getStats()
+        );
+    }, 1000);
+
     let toggleCommand = vscode.commands.registerCommand('devfocus.toggleTimer', () => {
         const currentPhase = timer.getPhase();
         
