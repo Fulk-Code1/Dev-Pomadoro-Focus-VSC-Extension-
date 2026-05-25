@@ -9,13 +9,15 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "dev-pomadoro-focus.helloWorld",
-        "title": "Hello World"
+        "command": "devfocus.toggleTimer",
+        "title": "Dev Focus: Toggle Timer"
       }
     ]
   },
