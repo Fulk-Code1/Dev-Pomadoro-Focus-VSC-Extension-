@@ -10,7 +10,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         webviewView: vscode.WebviewView,
         context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken
-    ) {
+    ) { 
         this._view = webviewView;
 
         webviewView.webview.options = {
