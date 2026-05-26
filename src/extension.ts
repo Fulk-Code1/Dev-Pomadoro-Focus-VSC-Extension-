@@ -3,6 +3,7 @@ import { StatusBarTimer } from './statusBar';
 import { PomodoroTimer } from './timer';
 import { StatsTracker } from './statsTracker';
 import { SidebarProvider } from './sidebarProvider';
+import { saveDay, DayRecord, getHistory } from './history';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "dev-focus" is now active!');
@@ -18,18 +19,36 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
     
-    // Единое объявление настроек с включенным DND
     const getSettings = () => ({ focusMin: 1, breakMin: 5, autoStartBreak: false, doNotDisturb: true });
     
+    // Счетчик завершенных сессий за текущий запуск
+    let todayPomodoros = 0; 
+    
     const onPomodoroComplete = () => {
+        todayPomodoros++;
         const stats = statsTracker.getStats();
+        
+        // Формируем запись и сохраняем в globalState
+        const todayStr = new Date().toISOString().split('T')[0];
+        const record: DayRecord = {
+            date: todayStr,
+            pomodoros: todayPomodoros,
+            activeMs: stats.activeMs,
+            linesAdded: stats.linesAdded,
+            filesOpened: stats.filesOpened,
+            topLanguage: stats.topLanguage
+        };
+        saveDay(context, record);
+
+        // Для отладки выведем в консоль текущую сохраненную историю
+        console.log('Сохраненная история:', getHistory(context));
+
         vscode.window.showInformationMessage(
-            `Статистика сессии: ${stats.linesAdded} строк, ${stats.filesOpened} файлов, Топ язык: ${stats.topLanguage}`
+            `🍅 Фокус завершён! Сегодня помидоров: ${todayPomodoros}. Строк: ${stats.linesAdded}`
         );
         statsTracker.stopTracking();
     };
 
-    // Единое объявление таймера
     const timer = new PomodoroTimer(statusBarTimer, getSettings, onPomodoroComplete);
 
     context.subscriptions.push(statusBarTimer);
