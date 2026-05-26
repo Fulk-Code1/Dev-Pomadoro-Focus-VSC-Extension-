@@ -1,9 +1,8 @@
 # Dev Focus Pomodoro 🍅
 
-"repository": {
-    "type": "git",
-    "url": "https://github.com/Fulk-Code1/Dev-Pomadoro-Focus-VSC-Extension-"
-  },
+<p align="center">
+  <img src="images/preview.jpg" alt="Dev Focus Pomodoro Logo" width="258" height="103">
+</p>
 
 Dev Focus Pomodoro is not just a timer. It's a stylish, editor-integrated productivity tool that helps maintain deep focus and automatically tracks your coding efficiency.
 

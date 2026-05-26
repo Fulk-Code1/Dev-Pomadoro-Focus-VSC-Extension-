@@ -4,6 +4,10 @@
   "description": "Pomodoro timer with coding stats for VS Code",
   "version": "0.0.1",
   "publisher": "DenisMal",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fulk-Code1/Dev-Pomadoro-Focus-VSC-Extension-"
+  },
   "icon": "resources/tomato.png",
   "engines": {
     "vscode": "^1.120.0"
