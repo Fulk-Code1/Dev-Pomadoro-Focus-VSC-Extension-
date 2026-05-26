@@ -8,7 +8,6 @@ export function openSettingsPanel(context: vscode.ExtensionContext, onSettingsCh
         { enableScripts: true }
     );
 
-    // Загружаем текущие настройки или ставим дефолтные
     const currentSettings = context.globalState.get('devfocus.settings', {
         preset: '25/5',
         customFocusMin: 25,
@@ -26,7 +25,7 @@ export function openSettingsPanel(context: vscode.ExtensionContext, onSettingsCh
                     context.globalState.update('devfocus.settings', message.settings);
                     vscode.window.showInformationMessage('Настройки Dev Focus сохранены!');
                     onSettingsChanged();
-                    panel.dispose(); // Закрываем вкладку после сохранения
+                    panel.dispose();
                     return;
             }
         },
@@ -41,7 +40,7 @@ function getSettingsHtml(settings: any) {
     <head>
         <meta charset="UTF-8">
         <style>
-            body { font-family: var(--vscode-font-family); padding: 20px; max-width: 500px; }
+            body { font-family: var(--vscode-font-family); padding: 20px; max-width: 500px; color: var(--vscode-foreground); }
             .form-group { margin-bottom: 20px; }
             label { display: block; margin-bottom: 5px; font-weight: bold; }
             select, input[type="number"] { 
@@ -54,14 +53,16 @@ function getSettingsHtml(settings: any) {
             .checkbox-group { display: flex; align-items: center; }
             .checkbox-group input { width: auto; margin-right: 10px; }
             button {
-                background: var(--vscode-button-background);
-                color: var(--vscode-button-foreground);
+                background: #8A2BE2;
+                color: #ffffff;
                 border: none;
                 padding: 10px 20px;
                 cursor: pointer;
                 font-weight: bold;
                 margin-top: 10px;
+                border-radius: 4px;
             }
+            button:hover { background: #9370DB; }
         </style>
     </head>
     <body>

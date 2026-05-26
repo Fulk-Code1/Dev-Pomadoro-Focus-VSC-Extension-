@@ -20,9 +20,8 @@ export function activate(context: vscode.ExtensionContext) {
         )
     );
     
-    // Функция для чтения актуальных настроек из globalState
     const getSettings = () => {
-        const s = context.globalState.get('devfocus.settings', {
+        const s = context.globalState.get<any>('devfocus.settings', {
             preset: '25/5', customFocusMin: 25, customBreakMin: 5, doNotDisturb: true, autoStartBreak: true
         });
         
@@ -52,7 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
         };
         saveDay(context, record);
         
-        // Сразу обновляем историю в панели
         sidebarProvider.updateHistory(getHistory(context));
 
         vscode.window.showInformationMessage(
@@ -67,11 +65,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(statsTracker);
     context.subscriptions.push({ dispose: () => timer.dispose() });
 
-    // Обработчик команды открытия настроек из Webview
+    // Регистрация команды открытия настроек
     context.subscriptions.push(
         vscode.commands.registerCommand('devfocus.openSettings', () => {
             openSettingsPanel(context, () => {
-                // Если таймер не запущен, сбрасываем его, чтобы применить новые настройки времени
                 if (timer.getPhase() === 'idle') {
                     timer.reset();
                 }
@@ -79,24 +76,13 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Слушаем сообщения от провайдера для открытия настроек
-    sidebarProvider['resolveWebviewView'] = function(webviewView, ctx, token) {
-        SidebarProvider.prototype.resolveWebviewView.call(this, webviewView, ctx, token);
-        webviewView.webview.onDidReceiveMessage(data => {
-            if (data.command === 'openSettings') {
-                vscode.commands.executeCommand('devfocus.openSettings');
-            }
-        });
-    };
-
-    // Главный цикл обновления UI
+    // Интервал обновления интерфейса боковой панели
     setInterval(() => {
         sidebarProvider.updatePanel(
             timer.getPhase(),
             timer.getRemaining(),
             statsTracker.getStats()
         );
-        // Периодически отправляем историю (можно оптимизировать, но для MVP отлично)
         sidebarProvider.updateHistory(getHistory(context));
     }, 1000);
 

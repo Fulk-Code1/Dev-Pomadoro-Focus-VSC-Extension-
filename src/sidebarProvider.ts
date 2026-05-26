@@ -20,7 +20,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-        // Слушаем сообщения из Webview (клики по кнопкам в UI)
         webviewView.webview.onDidReceiveMessage(data => {
             if (data.command === 'toggleTimer') {
                 vscode.commands.executeCommand('devfocus.toggleTimer');
@@ -30,7 +29,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         });
     }
 
-    // Этот метод вызывается каждую секунду для обновления цифр
     public updatePanel(phase: string, remaining: number, stats: any) {
         if (this._view) {
             this._view.webview.postMessage({
@@ -42,7 +40,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    // Этот метод отправляет массив истории в интерфейс
     public updateHistory(history: any[]) {
         if (this._view) {
             this._view.webview.postMessage({
@@ -53,6 +50,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
+        // Получаем URI для иконки помидора, чтобы отобразить её в Webview
+        const tomatoUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'tomato.svg'));
+
         return `<!DOCTYPE html>
         <html lang="en">
         <head>
@@ -60,66 +60,198 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Dev Focus</title>
             <style>
-                body { font-family: var(--vscode-font-family); padding: 15px; }
-                .stat-box { margin-bottom: 8px; font-size: 14px; }
-                .card { background: var(--vscode-editor-inactiveSelectionBackground); padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;}
-                h2 { margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--vscode-descriptionForeground); }
-                h1 { margin: 10px 0; font-size: 36px; }
-                button {
-                    background: var(--vscode-button-background);
-                    color: var(--vscode-button-foreground);
-                    border: none;
-                    padding: 8px 12px;
+                :root {
+                    /* Наша киберпанковская палитра из Clombyl */
+                    --glow-purple: #D000FF; /* Фуксия/Фиолетовый неон */
+                    --glow-green: #00FF19;  /* Кислотно-зеленый неон */
+                    --bg-dark: #0A0A0A;    /* Почти черный фон терминала */
+                    --card-bg: #141414;    /* Чуть светлее для карточек */
+                    --text-color: #f0f0f0;  /* Почти белый для обычного текста */
+                }
+
+                body { 
+                    font-family: var(--vscode-font-family); 
+                    padding: 10px 15px; 
+                    display: flex;
+                    flex-direction: column;
+                    background-color: var(--bg-dark); /* Глубокий темный фон */
+                    color: var(--text-color);
+                }
+
+                /* Секция Логотипа */
+                .logo-container {
+                    text-align: center;
+                    margin-bottom: 20px;
+                    padding-bottom: 10px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                }
+                .logo-img {
+                    width: 50px;
+                    height: 50px;
+                    margin-bottom: 5px;
+                    /* Небольшое зеленое свечение вокруг логотипа */
+                    filter: drop-shadow(0 0 5px var(--glow-green));
+                }
+                .logo-text {
+                    font-size: 16px;
+                    font-weight: bold;
+                    color: var(--text-color);
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                    /* Текст с неоновым свечением */
+                    text-shadow: 0 0 8px var(--glow-purple), 0 0 15px var(--glow-purple);
+                }
+
+                /* Карточка Таймера с неоновой рамкой */
+                .card { 
+                    background: var(--card-bg);
+                    border: 2px solid #333; /* Базовая темная рамка */
+                    padding: 20px 15px; 
+                    border-radius: 8px; 
+                    text-align: center; 
+                    margin-bottom: 20px;
+                    box-shadow: 0 0 15px rgba(208, 0, 255, 0.2); /* Базовое фиолетовое свечение */
+                    transition: box-shadow 0.3s;
+                }
+                /* Усиливаем свечение при наведении, как в Clombyl */
+                .card:hover {
+                    box-shadow: 0 0 25px rgba(208, 0, 255, 0.4), 0 0 10px rgba(0, 255, 25, 0.2);
+                }
+
+                h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--glow-green); }
+                
+                /* Большой Таймер */
+                h1 { 
+                    margin: 10px 0 20px 0; 
+                    font-size: 48px; 
+                    color: var(--text-color);
+                    font-family: 'Courier New', Courier, monospace; /* Моноширинный, как в терминале */
+                    /* Неоновый текст */
+                    text-shadow: 0 0 10px var(--glow-green), 0 0 20px var(--glow-green), 0 0 30px rgba(0, 255, 25, 0.4);
+                }
+
+                /* Кнопка Старт/Пауза: Неоновый контур */
+                button#toggleBtn {
+                    background: transparent;
+                    color: var(--glow-green);
+                    border: 2px solid var(--glow-green);
+                    padding: 12px 12px;
                     border-radius: 4px;
                     cursor: pointer;
                     width: 100%;
                     font-weight: bold;
-                    margin-top: 10px;
+                    font-size: 14px;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    transition: all 0.2s;
+                    /* Эффект свечения для контура и текста */
+                    box-shadow: 0 0 8px rgba(0, 255, 25, 0.4), inset 0 0 8px rgba(0, 255, 25, 0.2);
                 }
-                button:hover { background: var(--vscode-button-hoverBackground); }
+                button#toggleBtn:hover { 
+                    background: rgba(0, 255, 25, 0.1);
+                    box-shadow: 0 0 15px rgba(0, 255, 25, 0.6), inset 0 0 10px rgba(0, 255, 25, 0.3);
+                }
+
+                /* Кнопка Настройки: Фиолетовый контур */
+                button#settingsBtn {
+                    background: transparent;
+                    color: var(--glow-purple);
+                    border: 1px solid var(--glow-purple);
+                    padding: 8px 12px;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    width: 100%;
+                    margin-top: 15px;
+                    font-size: 12px;
+                    text-transform: uppercase;
+                    transition: all 0.2s;
+                    box-shadow: 0 0 5px rgba(208, 0, 255, 0.3);
+                }
+                button#settingsBtn:hover { 
+                    background: rgba(208, 0, 255, 0.1);
+                    box-shadow: 0 0 12px rgba(208, 0, 255, 0.5), inset 0 0 8px rgba(208, 0, 255, 0.2);
+                }
+
+                h3 { 
+                    color: #fff; 
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    padding-bottom: 5px;
+                    margin-top: 25px;
+                    font-size: 14px;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                }
+
+                .stat-box { 
+                    margin-bottom: 8px; 
+                    font-size: 14px; 
+                    display: flex; 
+                    justify-content: space-between;
+                    background: rgba(255, 255, 255, 0.03); /* Тонкий фон для строки */
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                }
+                .stat-label { color: rgba(255, 255, 255, 0.6); }
+                .stat-value { 
+                    font-weight: bold; 
+                    color: var(--glow-green);
+                    /* Легкое зеленое свечение для цифр */
+                    text-shadow: 0 0 5px var(--glow-green);
+                }
+
+                /* История */
                 .history-item { 
-                    border-left: 3px solid var(--vscode-button-background); 
-                    padding-left: 10px; 
-                    margin-bottom: 15px; 
+                    border-left: 3px solid #333; /* Базовая рамка */
+                    background: var(--card-bg);
+                    padding: 10px 12px; 
+                    margin-bottom: 10px; 
+                    border-radius: 0 4px 4px 0;
                     font-size: 13px;
+                    transition: all 0.3s;
                 }
-                .history-date { font-weight: bold; margin-bottom: 4px; color: var(--vscode-textPreformat-foreground); }
+                /* Подсвечиваем историю при наведении фиолетовым, как в Clombyl */
+                .history-item:hover {
+                    border-left: 3px solid var(--glow-purple);
+                    box-shadow: 0 0 10px rgba(208, 0, 255, 0.3);
+                }
+                .history-date { font-weight: bold; margin-bottom: 4px; color: var(--text-color); }
+                .history-stats { display: flex; gap: 15px; opacity: 0.8; }
             </style>
         </head>
         <body>
+            <div class="logo-container">
+                <img src="${tomatoUri}" class="logo-img" alt="Tomato Logo">
+                <div class="logo-text">Dev Focus</div>
+            </div>
+
             <div id="main-view">
                 <div class="card">
                     <h2 id="phase">Ожидание</h2>
                     <h1 id="timer">--:--</h1>
-                    <button id="toggleBtn">Старт / Пауза</button>
-                    <button id="settingsBtn" style="background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground);">Настройки</button>
+                    <button id="toggleBtn">СТАРТ / ПАУЗА</button>
+                    <button id="settingsBtn">Настройки</button>
                 </div>
                 
                 <h3>Статистика Сегодня</h3>
-                <div class="stat-box">📝 Строк: <strong id="lines">0</strong></div>
-                <div class="stat-box">📄 Файлов: <strong id="files">0</strong></div>
-                <div class="stat-box">💻 Топ язык: <strong id="lang">unknown</strong></div>
-
-                <hr style="border: none; border-top: 1px solid var(--vscode-panel-border); margin: 20px 0;">
+                <div class="stat-box"><span class="stat-label">📝 Строк:</span> <strong class="stat-value" id="lines">0</strong></div>
+                <div class="stat-box"><span class="stat-label">📄 Файлов:</span> <strong class="stat-value" id="files">0</strong></div>
+                <div class="stat-box"><span class="stat-label">💻 Топ язык:</span> <strong class="stat-value" id="lang">unknown</strong></div>
                 
-                <h3>История (Последние 30 дней)</h3>
+                <h3>История</h3>
                 <div id="history-container">Загрузка...</div>
             </div>
 
             <script>
                 const vscode = acquireVsCodeApi();
                 
-                // Обработка клика по кнопке Старт/Пауза
                 document.getElementById('toggleBtn').addEventListener('click', () => {
                     vscode.postMessage({ command: 'toggleTimer' });
                 });
 
-                // Обработка клика по кнопке Настройки
                 document.getElementById('settingsBtn').addEventListener('click', () => {
                     vscode.postMessage({ command: 'openSettings' });
                 });
 
-                // Прием сообщений от расширения
                 window.addEventListener('message', event => {
                     const message = event.data;
                     
@@ -150,8 +282,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                             html += \`
                                 <div class="history-item">
                                     <div class="history-date">\${isBest ? '⭐ ' : ''}\${h.date}</div>
-                                    <div>🍅 \${h.pomodoros} помидоров</div>
-                                    <div>📝 \${h.linesAdded} строк</div>
+                                    <div class="history-stats">
+                                        <span>🍅 \${h.pomodoros}</span>
+                                        <span>📝 \${h.linesAdded}</span>
+                                        <span>💻 \${h.topLanguage}</span>
+                                    </div>
                                 </div>
                             \`;
                         });
