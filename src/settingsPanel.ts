@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 export function openSettingsPanel(context: vscode.ExtensionContext, onSettingsChanged: () => void) {
     const panel = vscode.window.createWebviewPanel(
         'devFocusSettings',
-        'Dev Focus Настройки',
+        'Dev Focus Settings',
         vscode.ViewColumn.One,
         { enableScripts: true }
     );
@@ -23,7 +23,7 @@ export function openSettingsPanel(context: vscode.ExtensionContext, onSettingsCh
             switch (message.command) {
                 case 'saveSettings':
                     context.globalState.update('devfocus.settings', message.settings);
-                    vscode.window.showInformationMessage('Настройки Dev Focus сохранены!');
+                    vscode.window.showInformationMessage('Dev Focus settings saved!');
                     onSettingsChanged();
                     panel.dispose();
                     return;
@@ -82,7 +82,6 @@ function getSettingsHtml(settings: any) {
                 text-shadow: 0 0 5px rgba(0, 255, 25, 0.3);
             }
 
-            /* Сжимаем поля ввода */
             select, input[type="number"] { 
                 background: var(--input-bg); 
                 color: var(--text-color); 
@@ -126,7 +125,6 @@ function getSettingsHtml(settings: any) {
                 margin-bottom: 0;
             }
 
-            /* Кнопка сохранить тоже стала компактнее */
             button#saveBtn {
                 background: transparent;
                 color: var(--glow-purple);
@@ -165,35 +163,35 @@ function getSettingsHtml(settings: any) {
         </style>
     </head>
     <body>
-        <h2>Настройки системы</h2>
+        <h2>System Settings</h2>
         
         <div class="form-group">
-            <label>Протокол времени (Пресет)</label>
+            <label>Time Protocol (Preset)</label>
             <select id="preset">
-                <option value="25/5" ${settings.preset === '25/5' ? 'selected' : ''}>25 фокус / 5 перерыв</option>
-                <option value="50/10" ${settings.preset === '50/10' ? 'selected' : ''}>50 фокус / 10 перерыв</option>
-                <option value="90/20" ${settings.preset === '90/20' ? 'selected' : ''}>90 фокус / 20 перерыв</option>
-                <option value="custom" ${settings.preset === 'custom' ? 'selected' : ''}>Пользовательский режим</option>
+                <option value="25/5" ${settings.preset === '25/5' ? 'selected' : ''}>25 focus / 5 break</option>
+                <option value="50/10" ${settings.preset === '50/10' ? 'selected' : ''}>50 focus / 10 break</option>
+                <option value="90/20" ${settings.preset === '90/20' ? 'selected' : ''}>90 focus / 20 break</option>
+                <option value="custom" ${settings.preset === 'custom' ? 'selected' : ''}>Custom Mode</option>
             </select>
         </div>
 
         <div id="custom-fields" style="display: ${settings.preset === 'custom' ? 'block' : 'none'};">
             <div class="form-group">
-                <label>Минуты фокуса</label>
+                <label>Focus Minutes</label>
                 <input type="number" id="focusMin" value="${settings.customFocusMin}" min="1" max="180">
             </div>
             <div class="form-group">
-                <label>Минуты перерыва</label>
+                <label>Break Minutes</label>
                 <input type="number" id="breakMin" value="${settings.customBreakMin}" min="1" max="60">
             </div>
         </div>
 
         <div class="form-group checkbox-group">
             <input type="checkbox" id="dnd" ${settings.doNotDisturb ? 'checked' : ''}>
-            <label for="dnd" class="checkbox-label">Блокировать уведомления во время сессии</label>
+            <label for="dnd" class="checkbox-label">Block notifications during session</label>
         </div>
 
-        <button id="saveBtn">Применить изменения</button>
+        <button id="saveBtn">Apply Changes</button>
 
         <script>
             const vscode = acquireVsCodeApi();

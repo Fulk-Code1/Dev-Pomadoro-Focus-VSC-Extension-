@@ -8,7 +8,7 @@ export async function enableDND() {
             await config.update('doNotDisturb', true, vscode.ConfigurationTarget.Global);
         }
     } catch (e) {
-        console.warn('Режим DND не поддерживается в этой версии VS Code. Функция тихо отключена.');
+        console.warn('DND mode is not supported in this VS Code version. Feature silently disabled.');
     }
 }
 

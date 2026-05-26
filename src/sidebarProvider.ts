@@ -62,16 +62,12 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
             <title>Dev Focus</title>
             <style>
                 :root {
-                    /* Наша киберпанковская палитра из Clombyl */
-                    --glow-purple: #D000FF; /* Фуксия/Фиолетовый неон */
-                    --glow-green: #00FF19;  /* Кислотно-зеленый неон */
-                    --glow-red: #FF0055;    /* Красный для сброса */
-                    
-                    /* Изменяем фон на глубокий, темный фиолетовый */
-                    --bg-dark: #120021;    /* Глубокий, атмосферный фиолетовый */
-                    --card-bg: #19002a;    /* Чуть светлее фиолетовый для карточек */
-                    
-                    --text-color: #f0f0f0;  /* Почти белый */
+                    --glow-purple: #D000FF;
+                    --glow-green: #00FF19;
+                    --glow-red: #FF0055;
+                    --bg-dark: #120021;
+                    --card-bg: #19002a;
+                    --text-color: #f0f0f0;
                 }
 
                 body { 
@@ -79,7 +75,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     padding: 10px 15px; 
                     display: flex;
                     flex-direction: column;
-                    background-color: var(--bg-dark); /* Теперь глубокий фиолетовый */
+                    background-color: var(--bg-dark);
                     color: var(--text-color);
                 }
 
@@ -119,6 +115,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 }
 
                 h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--glow-green); }
+                
                 h1 { 
                     margin: 10px 0 20px 0; 
                     font-size: 48px; 
@@ -240,22 +237,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
             <div id="main-view">
                 <div class="card">
-                    <h2 id="phase">Ожидание</h2>
+                    <h2 id="phase">IDLE</h2>
                     <h1 id="timer">--:--</h1>
-                    <button id="toggleBtn">СТАРТ / ПАУЗА</button>
+                    <button id="toggleBtn">START / PAUSE</button>
                     <div class="action-buttons">
-                        <button id="resetBtn" class="secondary-btn">Сброс</button>
-                        <button id="settingsBtn" class="secondary-btn">Настройки</button>
+                        <button id="resetBtn" class="secondary-btn">RESET</button>
+                        <button id="settingsBtn" class="secondary-btn">SETTINGS</button>
                     </div>
                 </div>
                 
-                <h3>Статистика Сегодня</h3>
-                <div class="stat-box"><span class="stat-label">📝 Строк:</span> <strong class="stat-value" id="lines">0</strong></div>
-                <div class="stat-box"><span class="stat-label">📄 Файлов:</span> <strong class="stat-value" id="files">0</strong></div>
-                <div class="stat-box"><span class="stat-label">💻 Топ язык:</span> <strong class="stat-value" id="lang">unknown</strong></div>
+                <h3>TODAY'S STATS</h3>
+                <div class="stat-box"><span class="stat-label">Lines:</span> <strong class="stat-value" id="lines">0</strong></div>
+                <div class="stat-box"><span class="stat-label">Files:</span> <strong class="stat-value" id="files">0</strong></div>
+                <div class="stat-box"><span class="stat-label">Top lang:</span> <strong class="stat-value" id="lang">unknown</strong></div>
                 
-                <h3 id="historyToggle">История <span id="historyChevron" style="float: right; font-size: 10px; margin-top: 4px;">▼</span></h3>
-                <div id="history-container">Загрузка...</div>
+                <h3 id="historyToggle">HISTORY <span id="historyChevron" style="float: right; font-size: 10px; margin-top: 4px;">▼</span></h3>
+                <div id="history-container">Loading...</div>
             </div>
 
             <script>
@@ -284,7 +281,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     const message = event.data;
                     
                     if (message.command === 'update') {
-                        document.getElementById('phase').innerText = message.phase;
+                        document.getElementById('phase').innerText = message.phase.toUpperCase();
                         
                         const m = Math.floor(message.remaining / 60).toString().padStart(2, '0');
                         const s = (message.remaining % 60).toString().padStart(2, '0');
@@ -298,22 +295,20 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     if (message.command === 'updateHistory') {
                         const container = document.getElementById('history-container');
                         if (!message.history || message.history.length === 0) {
-                            container.innerHTML = '<em>История пока пуста</em>';
+                            container.innerHTML = '<em>History is empty for now</em>';
                             return;
                         }
                         
                         let html = '';
-                        const maxPomodoros = Math.max(...message.history.map(h => h.pomodoros));
 
                         message.history.forEach(h => {
-                            const isBest = h.pomodoros === maxPomodoros && h.pomodoros > 0;
                             html += \`
                                 <div class="history-item">
-                                    <div class="history-date">\${isBest ? '⭐ ' : ''}\${h.date}</div>
+                                    <div class="history-date">\${h.date}</div>
                                     <div class="history-stats">
                                         <span>🍅 \${h.pomodoros}</span>
-                                        <span>📝 \${h.linesAdded}</span>
-                                        <span>💻 \${h.topLanguage}</span>
+                                        <span> Lines: \${h.linesAdded}</span>
+                                        <span> Language:   \${h.topLanguage}</span>
                                     </div>
                                 </div>
                             \`;

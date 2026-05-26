@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
         sidebarProvider.updateHistory(getHistory(context));
 
         vscode.window.showInformationMessage(
-            `🍅 Фокус завершён! Сегодня помидоров: ${todayPomodoros}. Строк: ${stats.linesAdded}`
+            `🍅 Focus complete! Pomodoros today: ${todayPomodoros}. Lines: ${stats.linesAdded}`
         );
         statsTracker.stopTracking();
     };
@@ -65,13 +65,10 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(statsTracker);
     context.subscriptions.push({ dispose: () => timer.dispose() });
 
-    // Регистрация команды открытия настроек
     context.subscriptions.push(
         vscode.commands.registerCommand('devfocus.openSettings', () => {
             openSettingsPanel(context, () => {
-                // Вызываем сброс таймера
                 timer.reset();
-                // Принудительно обновляем UI сразу после сохранения настроек
                 sidebarProvider.updatePanel(
                     timer.getPhase(),
                     timer.getRemaining(),
@@ -81,7 +78,6 @@ export function activate(context: vscode.ExtensionContext) {
         })
     );
 
-    // Интервал обновления интерфейса боковой панели
     setInterval(() => {
         sidebarProvider.updatePanel(
             timer.getPhase(),
@@ -91,7 +87,6 @@ export function activate(context: vscode.ExtensionContext) {
         sidebarProvider.updateHistory(getHistory(context));
     }, 1000);
 
-    // Регистрация команды Старт/Пауза
     let toggleCommand = vscode.commands.registerCommand('devfocus.toggleTimer', () => {
         const currentPhase = timer.getPhase();
         if (currentPhase === 'idle') {
@@ -102,7 +97,6 @@ export function activate(context: vscode.ExtensionContext) {
             timer.resume(); statsTracker.startTracking();
         }
         
-        // Мгновенное обновление UI при старте/паузе
         sidebarProvider.updatePanel(
             timer.getPhase(),
             timer.getRemaining(),
@@ -111,11 +105,8 @@ export function activate(context: vscode.ExtensionContext) {
     });
     context.subscriptions.push(toggleCommand);
 
-    // Регистрация команды Сброса таймера
     let resetCommand = vscode.commands.registerCommand('devfocus.resetTimer', () => {
         timer.reset();
-        
-        // Принудительно и мгновенно обновляем интерфейс боковой панели при сбросе
         sidebarProvider.updatePanel(
             timer.getPhase(),
             timer.getRemaining(),
