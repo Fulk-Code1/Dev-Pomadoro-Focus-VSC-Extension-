@@ -24,7 +24,6 @@ export function activate(context: vscode.ExtensionContext) {
         const s = context.globalState.get<any>('devfocus.settings', {
             preset: '25/5', customFocusMin: 25, customBreakMin: 5, doNotDisturb: true, autoStartBreak: true
         });
-        
         let focusMin = 25; let breakMin = 5;
         if (s.preset === '25/5') { focusMin = 25; breakMin = 5; }
         else if (s.preset === '50/10') { focusMin = 50; breakMin = 10; }
@@ -36,30 +35,37 @@ export function activate(context: vscode.ExtensionContext) {
     
     let todayPomodoros = 0; 
     
-    const onPomodoroComplete = () => {
-        todayPomodoros++;
-        const stats = statsTracker.getStats();
-        const todayStr = new Date().toISOString().split('T')[0];
-        
-        const record: DayRecord = {
-            date: todayStr,
-            pomodoros: todayPomodoros,
-            activeMs: stats.activeMs,
-            linesAdded: stats.linesAdded,
-            filesOpened: stats.filesOpened,
-            topLanguage: stats.topLanguage
-        };
-        saveDay(context, record);
-        
-        sidebarProvider.updateHistory(getHistory(context));
+    const onSessionComplete = (phase: 'focus' | 'break') => {
+        if (phase === 'focus') {
+            todayPomodoros++;
+            const stats = statsTracker.getStats();
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            const record: DayRecord = {
+                date: todayStr,
+                pomodoros: todayPomodoros,
+                activeMs: stats.activeMs,
+                linesAdded: stats.linesAdded,
+                filesOpened: stats.filesOpened,
+                topLanguage: stats.topLanguage
+            };
+            saveDay(context, record);
+            sidebarProvider.updateHistory(getHistory(context));
+            statsTracker.stopTracking();
 
-        vscode.window.showInformationMessage(
-            `🍅 Focus complete! Pomodoros today: ${todayPomodoros}. Lines: ${stats.linesAdded}`
-        );
-        statsTracker.stopTracking();
+            // Вызываем кастомное окно вместо нативного
+            if (getSettings().autoStartBreak) {
+                timer.startBreak();
+                sidebarProvider.showNotification('FOCUS COMPLETE', `Pomodoros today: ${todayPomodoros}. Lines added: ${stats.linesAdded}`, 'focus', true);
+            } else {
+                sidebarProvider.showNotification('FOCUS COMPLETE', `Pomodoros today: ${todayPomodoros}. Lines added: ${stats.linesAdded}`, 'focus', false);
+            }
+        } else {
+            sidebarProvider.showNotification('BREAK COMPLETE', 'Ready for another focus session?', 'break', false);
+        }
     };
 
-    const timer = new PomodoroTimer(statusBarTimer, getSettings, onPomodoroComplete);
+    const timer = new PomodoroTimer(statusBarTimer, getSettings, onSessionComplete);
 
     context.subscriptions.push(statusBarTimer);
     context.subscriptions.push(statsTracker);
@@ -69,21 +75,13 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('devfocus.openSettings', () => {
             openSettingsPanel(context, () => {
                 timer.reset();
-                sidebarProvider.updatePanel(
-                    timer.getPhase(),
-                    timer.getRemaining(),
-                    statsTracker.getStats()
-                );
+                sidebarProvider.updatePanel(timer.getPhase(), timer.getRemaining(), statsTracker.getStats());
             });
         })
     );
 
     setInterval(() => {
-        sidebarProvider.updatePanel(
-            timer.getPhase(),
-            timer.getRemaining(),
-            statsTracker.getStats()
-        );
+        sidebarProvider.updatePanel(timer.getPhase(), timer.getRemaining(), statsTracker.getStats());
         sidebarProvider.updateHistory(getHistory(context));
     }, 1000);
 
@@ -96,24 +94,28 @@ export function activate(context: vscode.ExtensionContext) {
         } else if (currentPhase === 'paused') {
             timer.resume(); statsTracker.startTracking();
         }
-        
-        sidebarProvider.updatePanel(
-            timer.getPhase(),
-            timer.getRemaining(),
-            statsTracker.getStats()
-        );
+        sidebarProvider.updatePanel(timer.getPhase(), timer.getRemaining(), statsTracker.getStats());
     });
     context.subscriptions.push(toggleCommand);
 
     let resetCommand = vscode.commands.registerCommand('devfocus.resetTimer', () => {
         timer.reset();
-        sidebarProvider.updatePanel(
-            timer.getPhase(),
-            timer.getRemaining(),
-            statsTracker.getStats()
-        );
+        sidebarProvider.updatePanel(timer.getPhase(), timer.getRemaining(), statsTracker.getStats());
     });
     context.subscriptions.push(resetCommand);
+
+    // Новые команды, которые вызываются из кнопок неонового уведомления
+    context.subscriptions.push(vscode.commands.registerCommand('devfocus.startBreak', () => {
+        timer.startBreak();
+        sidebarProvider.updatePanel(timer.getPhase(), timer.getRemaining(), statsTracker.getStats());
+    }));
+    
+    context.subscriptions.push(vscode.commands.registerCommand('devfocus.startFocus', () => {
+        timer.reset();
+        timer.start();
+        statsTracker.startTracking();
+        sidebarProvider.updatePanel(timer.getPhase(), timer.getRemaining(), statsTracker.getStats());
+    }));
 }
 
 export function deactivate() {}
