@@ -20,15 +20,17 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-        // Слушаем сообщения из Webview (например, клик по кнопке в UI)
+        // Слушаем сообщения из Webview (клики по кнопкам в UI)
         webviewView.webview.onDidReceiveMessage(data => {
             if (data.command === 'toggleTimer') {
                 vscode.commands.executeCommand('devfocus.toggleTimer');
+            } else if (data.command === 'openSettings') {
+                vscode.commands.executeCommand('devfocus.openSettings');
             }
         });
     }
 
-    // Этот метод будем вызывать каждую секунду для обновления цифр
+    // Этот метод вызывается каждую секунду для обновления цифр
     public updatePanel(phase: string, remaining: number, stats: any) {
         if (this._view) {
             this._view.webview.postMessage({
@@ -36,6 +38,16 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 phase,
                 remaining,
                 stats
+            });
+        }
+    }
+
+    // Этот метод отправляет массив истории в интерфейс
+    public updateHistory(history: any[]) {
+        if (this._view) {
+            this._view.webview.postMessage({
+                command: 'updateHistory',
+                history
             });
         }
     }
@@ -62,34 +74,55 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     cursor: pointer;
                     width: 100%;
                     font-weight: bold;
+                    margin-top: 10px;
                 }
                 button:hover { background: var(--vscode-button-hoverBackground); }
-                hr { border: none; border-top: 1px solid var(--vscode-panel-border); margin: 20px 0; }
+                .history-item { 
+                    border-left: 3px solid var(--vscode-button-background); 
+                    padding-left: 10px; 
+                    margin-bottom: 15px; 
+                    font-size: 13px;
+                }
+                .history-date { font-weight: bold; margin-bottom: 4px; color: var(--vscode-textPreformat-foreground); }
             </style>
         </head>
         <body>
-            <div class="card">
-                <h2 id="phase">Ожидание</h2>
-                <h1 id="timer">--:--</h1>
-                <button id="toggleBtn">Старт / Пауза</button>
+            <div id="main-view">
+                <div class="card">
+                    <h2 id="phase">Ожидание</h2>
+                    <h1 id="timer">--:--</h1>
+                    <button id="toggleBtn">Старт / Пауза</button>
+                    <button id="settingsBtn" style="background: var(--vscode-button-secondaryBackground); color: var(--vscode-button-secondaryForeground);">Настройки</button>
+                </div>
+                
+                <h3>Статистика Сегодня</h3>
+                <div class="stat-box">📝 Строк: <strong id="lines">0</strong></div>
+                <div class="stat-box">📄 Файлов: <strong id="files">0</strong></div>
+                <div class="stat-box">💻 Топ язык: <strong id="lang">unknown</strong></div>
+
+                <hr style="border: none; border-top: 1px solid var(--vscode-panel-border); margin: 20px 0;">
+                
+                <h3>История (Последние 30 дней)</h3>
+                <div id="history-container">Загрузка...</div>
             </div>
-            
-            <h3>Статистика Сегодня</h3>
-            <div class="stat-box">📝 Строк: <strong id="lines">0</strong></div>
-            <div class="stat-box">📄 Файлов: <strong id="files">0</strong></div>
-            <div class="stat-box">💻 Топ язык: <strong id="lang">unknown</strong></div>
 
             <script>
                 const vscode = acquireVsCodeApi();
                 
-                // Отправляем команду в расширение при клике
+                // Обработка клика по кнопке Старт/Пауза
                 document.getElementById('toggleBtn').addEventListener('click', () => {
                     vscode.postMessage({ command: 'toggleTimer' });
                 });
 
-                // Принимаем данные от расширения и обновляем DOM
+                // Обработка клика по кнопке Настройки
+                document.getElementById('settingsBtn').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'openSettings' });
+                });
+
+                // Прием сообщений от расширения
                 window.addEventListener('message', event => {
                     const message = event.data;
+                    
                     if (message.command === 'update') {
                         document.getElementById('phase').innerText = message.phase;
                         
@@ -100,6 +133,29 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         document.getElementById('lines').innerText = message.stats.linesAdded;
                         document.getElementById('files').innerText = message.stats.filesOpened;
                         document.getElementById('lang').innerText = message.stats.topLanguage;
+                    }
+                    
+                    if (message.command === 'updateHistory') {
+                        const container = document.getElementById('history-container');
+                        if (!message.history || message.history.length === 0) {
+                            container.innerHTML = '<em>История пока пуста</em>';
+                            return;
+                        }
+                        
+                        let html = '';
+                        const maxPomodoros = Math.max(...message.history.map(h => h.pomodoros));
+
+                        message.history.forEach(h => {
+                            const isBest = h.pomodoros === maxPomodoros && h.pomodoros > 0;
+                            html += \`
+                                <div class="history-item">
+                                    <div class="history-date">\${isBest ? '⭐ ' : ''}\${h.date}</div>
+                                    <div>🍅 \${h.pomodoros} помидоров</div>
+                                    <div>📝 \${h.linesAdded} строк</div>
+                                </div>
+                            \`;
+                        });
+                        container.innerHTML = html;
                     }
                 });
             </script>

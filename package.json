@@ -3,6 +3,8 @@
   "displayName": "Dev Pomadoro Focus",
   "description": "Pomodoro timer with coding stats for VS Code",
   "version": "0.0.1",
+  "publisher": "DenisMal",
+  "icon": "resources/tomato.svg",
   "engines": {
     "vscode": "^1.120.0"
   },
