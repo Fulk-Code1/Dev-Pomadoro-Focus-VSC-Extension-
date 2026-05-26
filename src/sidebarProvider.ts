@@ -101,7 +101,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     filter: drop-shadow(0 0 5px var(--glow-green));
                 }
                 .logo-text {
-                    font-size: 16px;
+                    font-size: 14px;
                     font-weight: bold;
                     color: var(--text-color);
                     text-transform: uppercase;
@@ -204,7 +204,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
         <body>
             <div class="logo-container">
                 <img src="${tomatoUri}" class="logo-img" alt="Tomato Logo">
-                <div class="logo-text">Dev Focus</div>
+                <div class="logo-text">Dev Focus Pomodoro</div>
             </div>
 
             <div id="main-view">
@@ -219,9 +219,9 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 </div>
                 
                 <h3>TODAY'S STATS</h3>
-                <div class="stat-box"><span class="stat-label">📝 Lines:</span> <strong class="stat-value" id="lines">0</strong></div>
-                <div class="stat-box"><span class="stat-label">📄 Files:</span> <strong class="stat-value" id="files">0</strong></div>
-                <div class="stat-box"><span class="stat-label">💻 Top lang:</span> <strong class="stat-value" id="lang">unknown</strong></div>
+                <div class="stat-box"><span class="stat-label">Lines:</span> <strong class="stat-value" id="lines">0</strong></div>
+                <div class="stat-box"><span class="stat-label">Files:</span> <strong class="stat-value" id="files">0</strong></div>
+                <div class="stat-box"><span class="stat-label">Top lang:</span> <strong class="stat-value" id="lang">unknown</strong></div>
                 
                 <h3 id="historyToggle">HISTORY <span id="historyChevron" style="float: right; font-size: 10px; margin-top: 4px;">▼</span></h3>
                 <div id="history-container">Loading...</div>

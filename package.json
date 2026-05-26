@@ -1,10 +1,10 @@
 {
-  "name": "dev-pomadoro-focus",
-  "displayName": "Dev Pomadoro Focus",
+  "name": "dev-focus-pomodoro",
+  "displayName": "Dev Focus Pomodoro",
   "description": "Pomodoro timer with coding stats for VS Code",
   "version": "0.0.1",
   "publisher": "DenisMal",
-  "icon": "resources/tomato.svg",
+  "icon": "resources/tomato.png",
   "engines": {
     "vscode": "^1.120.0"
   },
@@ -26,7 +26,7 @@
       "activitybar": [
         {
           "id": "dev-focus",
-          "title": "Dev Focus",
+          "title": "Dev Focus Pomodoro",
           "icon": "resources/tomato.svg"
         }
       ]
@@ -36,7 +36,8 @@
         {
           "type": "webview",
           "id": "devfocus.panel",
-          "name": "Dev Focus"
+          "name": "Dev Focus Pomodoro",
+          "icon": "resources/tomato.svg"
         }
       ]
     }

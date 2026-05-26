@@ -34,7 +34,10 @@ export class PomodoroTimer {
     }
 
     pause() {
-        if (this.interval) { clearInterval(this.interval); this.interval = null; }
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
         this.pausedPhase = this.phase;
         this.phase = 'paused';
         this.statusBar.setPaused(this.remaining);
@@ -42,13 +45,18 @@ export class PomodoroTimer {
     }
 
     resume() {
-        if (this.phase !== 'paused') return;
+        if (this.phase !== 'paused') {
+            return;
+        }
         this.phase = this.pausedPhase!;
         this.start();
     }
 
     reset() {
-        if (this.interval) { clearInterval(this.interval); this.interval = null; }
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
         const s = this.settings();
         if (this.phase === 'break') {
             this.remaining = s.breakMin * 60;
@@ -62,15 +70,20 @@ export class PomodoroTimer {
     }
 
     skip() {
-        if (this.interval) { clearInterval(this.interval); this.interval = null; }
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
         this.phase = 'idle';
         this.statusBar.setIdle();
         disableDND().catch(console.error);
     }
 
-    // Новый метод для принудительного старта перерыва
     startBreak() {
-        if (this.interval) { clearInterval(this.interval); this.interval = null; }
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
         this.phase = 'break';
         this.remaining = this.settings().breakMin * 60;
         this.start();
@@ -91,16 +104,17 @@ export class PomodoroTimer {
             this.statusBar.setBreak(this.remaining);
         }
 
-        // Логика при истечении времени
         if (this.remaining <= 0) {
-            if (this.interval) { clearInterval(this.interval); this.interval = null; }
+            if (this.interval) {
+                clearInterval(this.interval);
+                this.interval = null;
+            }
             
             const completedPhase = this.phase as 'focus' | 'break';
             this.phase = 'idle';
             this.statusBar.setIdle();
             disableDND().catch(console.error);
             
-            // Отправляем сигнал ядру расширения
             this.onSessionComplete(completedPhase);
         }
     }
@@ -108,7 +122,10 @@ export class PomodoroTimer {
     getPhase() { return this.phase; }
     getRemaining() { return this.remaining; }
     dispose() { 
-        if (this.interval) { clearInterval(this.interval); this.interval = null; }
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
         disableDND().catch(console.error); 
     }
 }

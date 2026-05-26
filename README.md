@@ -1,71 +1,54 @@
-# dev-pomadoro-focus README
+# Dev Focus Pomodoro 🍅
 
-This is the README for your extension "dev-pomadoro-focus". After writing up a brief description, we recommend including the following sections.
+"repository": {
+    "type": "git",
+    "url": "https://github.com/Fulk-Code1/Dev-Pomadoro-Focus-VSC-Extension-"
+  },
 
-## Features
+Dev Focus Pomodoro is not just a timer. It's a stylish, editor-integrated productivity tool that helps maintain deep focus and automatically tracks your coding efficiency.
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
-
-## Requirements
-
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
-
-## Extension Settings
-
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
-
-For example:
-
-This extension contributes the following settings:
-
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
+Designed with aesthetics in mind: the deep dark background and neon accents blend perfectly into dark VS Code themes and reduce eye strain during long coding sessions.
 
 ---
 
-## Following extension guidelines
+## Features
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+* **🍅 Built-in Productivity Tracker:** During each session, the extension tracks:
+  * Net lines of code added (with protection against auto-formatter false positives).
+  * Number of opened and modified files.
+  * Top programming language used most frequently in the session.
+* **🍅 Do Not Disturb Mode:** Automatically blocks distracting VS Code pop-up notifications while you're in focus state.
+* **🍅 Custom Notifications:** Stylish modal overlays with blur effect that auto-dismiss after 7 seconds — no interruptions if you step away.
+* **🍅 Local Session History:** Save stats from your best days (pomodoros, lines of code, languages) directly in the sidebar.
+* **🍅 Flexible Settings:** Use proven protocols (25/5, 50/10, 90/20) or set completely custom focus and break durations.
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+---
 
-## Working with Markdown
+## How to Use
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+1. After installation, a 🍅 icon appears in your Activity Bar. Click it to open the **Dev Focus** panel.
+2. Click **Start / Pause** to begin the focus timer. 🍅
+3. Write code — the extension silently tracks your stats in the background.
+4. When time is up, a smooth notification appears to start your break. Start it immediately or postpone it.
+5. To adjust the timer or disable DND mode, click **Settings** in the sidebar.
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
+---
 
-## For more information
+## Technologies
 
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
+* **TypeScript & Node.js:** Core business logic for the timer and file system tracking.
+* **VS Code Webview API:** Fully custom UI for the sidebar and settings panel, powered by HTML/CSS/JS.
+* **Event-Driven Architecture:** Uses `vscode.workspace.onDidChangeTextDocument` for accurate, lightweight on-the-fly code analysis.
+* **Global State Storage:** Local storage for settings and history — no data sent to third-party servers.
 
-**Enjoy!**
+---
+
+## About 🍅
+
+Publisher: **DenisMal**
+
+Built by a developer, for developers — to make the coding process more focused and enjoyable.
+
+---
+
+**Dev Focus Pomodoro** 🍅🍅🍅 — Less distraction. More flow.
