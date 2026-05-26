@@ -25,6 +25,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 vscode.commands.executeCommand('devfocus.toggleTimer');
             } else if (data.command === 'openSettings') {
                 vscode.commands.executeCommand('devfocus.openSettings');
+            } else if (data.command === 'resetTimer') {
+                vscode.commands.executeCommand('devfocus.resetTimer');
             }
         });
     }
@@ -50,7 +52,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
-        // Получаем URI для иконки помидора, чтобы отобразить её в Webview
         const tomatoUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'tomato.svg'));
 
         return `<!DOCTYPE html>
@@ -64,9 +65,13 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     /* Наша киберпанковская палитра из Clombyl */
                     --glow-purple: #D000FF; /* Фуксия/Фиолетовый неон */
                     --glow-green: #00FF19;  /* Кислотно-зеленый неон */
-                    --bg-dark: #0A0A0A;    /* Почти черный фон терминала */
-                    --card-bg: #141414;    /* Чуть светлее для карточек */
-                    --text-color: #f0f0f0;  /* Почти белый для обычного текста */
+                    --glow-red: #FF0055;    /* Красный для сброса */
+                    
+                    /* Изменяем фон на глубокий, темный фиолетовый */
+                    --bg-dark: #120021;    /* Глубокий, атмосферный фиолетовый */
+                    --card-bg: #19002a;    /* Чуть светлее фиолетовый для карточек */
+                    
+                    --text-color: #f0f0f0;  /* Почти белый */
                 }
 
                 body { 
@@ -74,11 +79,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     padding: 10px 15px; 
                     display: flex;
                     flex-direction: column;
-                    background-color: var(--bg-dark); /* Глубокий темный фон */
+                    background-color: var(--bg-dark); /* Теперь глубокий фиолетовый */
                     color: var(--text-color);
                 }
 
-                /* Секция Логотипа */
                 .logo-container {
                     text-align: center;
                     margin-bottom: 20px;
@@ -89,7 +93,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     width: 50px;
                     height: 50px;
                     margin-bottom: 5px;
-                    /* Небольшое зеленое свечение вокруг логотипа */
                     filter: drop-shadow(0 0 5px var(--glow-green));
                 }
                 .logo-text {
@@ -98,39 +101,32 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     color: var(--text-color);
                     text-transform: uppercase;
                     letter-spacing: 2px;
-                    /* Текст с неоновым свечением */
                     text-shadow: 0 0 8px var(--glow-purple), 0 0 15px var(--glow-purple);
                 }
 
-                /* Карточка Таймера с неоновой рамкой */
                 .card { 
                     background: var(--card-bg);
-                    border: 2px solid #333; /* Базовая темная рамка */
+                    border: 2px solid #333;
                     padding: 20px 15px; 
                     border-radius: 8px; 
                     text-align: center; 
                     margin-bottom: 20px;
-                    box-shadow: 0 0 15px rgba(208, 0, 255, 0.2); /* Базовое фиолетовое свечение */
+                    box-shadow: 0 0 15px rgba(208, 0, 255, 0.2);
                     transition: box-shadow 0.3s;
                 }
-                /* Усиливаем свечение при наведении, как в Clombyl */
                 .card:hover {
                     box-shadow: 0 0 25px rgba(208, 0, 255, 0.4), 0 0 10px rgba(0, 255, 25, 0.2);
                 }
 
                 h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--glow-green); }
-                
-                /* Большой Таймер */
                 h1 { 
                     margin: 10px 0 20px 0; 
                     font-size: 48px; 
                     color: var(--text-color);
-                    font-family: 'Courier New', Courier, monospace; /* Моноширинный, как в терминале */
-                    /* Неоновый текст */
+                    font-family: 'Courier New', Courier, monospace;
                     text-shadow: 0 0 10px var(--glow-green), 0 0 20px var(--glow-green), 0 0 30px rgba(0, 255, 25, 0.4);
                 }
 
-                /* Кнопка Старт/Пауза: Неоновый контур */
                 button#toggleBtn {
                     background: transparent;
                     color: var(--glow-green);
@@ -144,7 +140,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     text-transform: uppercase;
                     letter-spacing: 1px;
                     transition: all 0.2s;
-                    /* Эффект свечения для контура и текста */
                     box-shadow: 0 0 8px rgba(0, 255, 25, 0.4), inset 0 0 8px rgba(0, 255, 25, 0.2);
                 }
                 button#toggleBtn:hover { 
@@ -152,24 +147,41 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     box-shadow: 0 0 15px rgba(0, 255, 25, 0.6), inset 0 0 10px rgba(0, 255, 25, 0.3);
                 }
 
-                /* Кнопка Настройки: Фиолетовый контур */
-                button#settingsBtn {
+                .action-buttons {
+                    display: flex;
+                    gap: 10px;
+                    margin-top: 15px;
+                }
+
+                button.secondary-btn {
                     background: transparent;
-                    color: var(--glow-purple);
-                    border: 1px solid var(--glow-purple);
                     padding: 8px 12px;
                     border-radius: 4px;
                     cursor: pointer;
                     width: 100%;
-                    margin-top: 15px;
                     font-size: 12px;
                     text-transform: uppercase;
                     transition: all 0.2s;
+                }
+
+                button#settingsBtn {
+                    color: var(--glow-purple);
+                    border: 1px solid var(--glow-purple);
                     box-shadow: 0 0 5px rgba(208, 0, 255, 0.3);
                 }
                 button#settingsBtn:hover { 
                     background: rgba(208, 0, 255, 0.1);
                     box-shadow: 0 0 12px rgba(208, 0, 255, 0.5), inset 0 0 8px rgba(208, 0, 255, 0.2);
+                }
+
+                button#resetBtn {
+                    color: var(--glow-red);
+                    border: 1px solid var(--glow-red);
+                    box-shadow: 0 0 5px rgba(255, 0, 85, 0.3);
+                }
+                button#resetBtn:hover { 
+                    background: rgba(255, 0, 85, 0.1);
+                    box-shadow: 0 0 12px rgba(255, 0, 85, 0.5), inset 0 0 8px rgba(255, 0, 85, 0.2);
                 }
 
                 h3 { 
@@ -182,26 +194,29 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     letter-spacing: 1px;
                 }
 
+                #historyToggle {
+                    cursor: pointer;
+                    user-select: none;
+                }
+                #historyToggle:hover {
+                    color: var(--glow-purple);
+                    text-shadow: 0 0 5px rgba(208, 0, 255, 0.5);
+                }
+
                 .stat-box { 
                     margin-bottom: 8px; 
                     font-size: 14px; 
                     display: flex; 
                     justify-content: space-between;
-                    background: rgba(255, 255, 255, 0.03); /* Тонкий фон для строки */
+                    background: rgba(255, 255, 255, 0.03); 
                     padding: 4px 8px;
                     border-radius: 4px;
                 }
                 .stat-label { color: rgba(255, 255, 255, 0.6); }
-                .stat-value { 
-                    font-weight: bold; 
-                    color: var(--glow-green);
-                    /* Легкое зеленое свечение для цифр */
-                    text-shadow: 0 0 5px var(--glow-green);
-                }
+                .stat-value { font-weight: bold; color: var(--glow-green); text-shadow: 0 0 5px var(--glow-green); }
 
-                /* История */
                 .history-item { 
-                    border-left: 3px solid #333; /* Базовая рамка */
+                    border-left: 3px solid #333; 
                     background: var(--card-bg);
                     padding: 10px 12px; 
                     margin-bottom: 10px; 
@@ -209,7 +224,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     font-size: 13px;
                     transition: all 0.3s;
                 }
-                /* Подсвечиваем историю при наведении фиолетовым, как в Clombyl */
                 .history-item:hover {
                     border-left: 3px solid var(--glow-purple);
                     box-shadow: 0 0 10px rgba(208, 0, 255, 0.3);
@@ -229,7 +243,10 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     <h2 id="phase">Ожидание</h2>
                     <h1 id="timer">--:--</h1>
                     <button id="toggleBtn">СТАРТ / ПАУЗА</button>
-                    <button id="settingsBtn">Настройки</button>
+                    <div class="action-buttons">
+                        <button id="resetBtn" class="secondary-btn">Сброс</button>
+                        <button id="settingsBtn" class="secondary-btn">Настройки</button>
+                    </div>
                 </div>
                 
                 <h3>Статистика Сегодня</h3>
@@ -237,7 +254,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                 <div class="stat-box"><span class="stat-label">📄 Файлов:</span> <strong class="stat-value" id="files">0</strong></div>
                 <div class="stat-box"><span class="stat-label">💻 Топ язык:</span> <strong class="stat-value" id="lang">unknown</strong></div>
                 
-                <h3>История</h3>
+                <h3 id="historyToggle">История <span id="historyChevron" style="float: right; font-size: 10px; margin-top: 4px;">▼</span></h3>
                 <div id="history-container">Загрузка...</div>
             </div>
 
@@ -248,8 +265,19 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     vscode.postMessage({ command: 'toggleTimer' });
                 });
 
+                document.getElementById('resetBtn').addEventListener('click', () => {
+                    vscode.postMessage({ command: 'resetTimer' });
+                });
+
                 document.getElementById('settingsBtn').addEventListener('click', () => {
                     vscode.postMessage({ command: 'openSettings' });
+                });
+
+                let historyOpen = true;
+                document.getElementById('historyToggle').addEventListener('click', () => {
+                    historyOpen = !historyOpen;
+                    document.getElementById('history-container').style.display = historyOpen ? 'block' : 'none';
+                    document.getElementById('historyChevron').innerText = historyOpen ? '▼' : '▶';
                 });
 
                 window.addEventListener('message', event => {

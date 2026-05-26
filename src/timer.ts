@@ -17,6 +17,8 @@ export class PomodoroTimer {
         onPomodoroComplete: () => void
     ) {
         this.onPomodoroComplete = onPomodoroComplete;
+        // Задаем начальное время при старте
+        this.remaining = this.settings().focusMin * 60;
     }
 
     start() {
@@ -25,12 +27,13 @@ export class PomodoroTimer {
             this.remaining = this.settings().focusMin * 60;
         }
         
-        // Включаем DND только если мы в фокусе и настройка активирована
         if (this.phase === 'focus' && this.settings().doNotDisturb) {
             enableDND().catch(console.error);
         }
         
-        this.interval = setInterval(() => this.tick(), 1000);
+        if (!this.interval) {
+            this.interval = setInterval(() => this.tick(), 1000);
+        }
     }
 
     pause() {
@@ -41,8 +44,6 @@ export class PomodoroTimer {
         this.pausedPhase = this.phase;
         this.phase = 'paused';
         this.statusBar.setPaused(this.remaining);
-        
-        // Снимаем блокировку на время паузы
         disableDND().catch(console.error);
     }
 
@@ -51,22 +52,35 @@ export class PomodoroTimer {
             return;
         }
         this.phase = this.pausedPhase!;
-        this.start(); // start() сам проверит фазу и снова включит DND, если нужно
+        this.start();
     }
 
     reset() {
+        // Полностью уничтожаем текущий запущенный интервал
         if (this.interval) {
             clearInterval(this.interval);
+            this.interval = null;
         }
+        
         const s = this.settings();
-        this.remaining = this.phase === 'break' ? s.breakMin * 60 : s.focusMin * 60;
-        this.phase = this.phase === 'break' ? 'break' : 'focus';
+        
+        // Если сбрасываем во время перерыва — возвращаем начало перерыва, иначе — начало фокуса
+        if (this.phase === 'break') {
+            this.remaining = s.breakMin * 60;
+            this.statusBar.setBreak(this.remaining);
+        } else {
+            this.phase = 'idle';
+            this.remaining = s.focusMin * 60;
+            this.statusBar.setIdle();
+        }
+        
         disableDND().catch(console.error);
     }
 
     skip() {
         if (this.interval) {
             clearInterval(this.interval);
+            this.interval = null;
         }
         this.phase = 'idle';
         this.statusBar.setIdle();
@@ -77,11 +91,9 @@ export class PomodoroTimer {
         this.remaining--;
         
         if (this.phase === 'focus') {
-            // Добавляем иконку перечеркнутого колокольчика, если DND включен
             if (this.settings().doNotDisturb) {
                 const m = Math.floor(this.remaining / 60).toString().padStart(2, '0');
                 const s = (this.remaining % 60).toString().padStart(2, '0');
-                // Переопределяем текст статус-бара напрямую, чтобы добавить иконку
                 this.statusBar['item'].text = `$(clock) ${m}:${s}  Focus  $(bell-slash)`;
             } else {
                 this.statusBar.setFocus(this.remaining);
@@ -93,10 +105,11 @@ export class PomodoroTimer {
         if (this.remaining <= 0) {
             if (this.interval) {
                 clearInterval(this.interval);
+                this.interval = null;
             }
             
             if (this.phase === 'focus') {
-                disableDND().catch(console.error); // Снимаем DND при завершении фокуса
+                disableDND().catch(console.error);
                 this.onPomodoroComplete();
                 
                 vscode.window.showInformationMessage(
@@ -128,7 +141,8 @@ export class PomodoroTimer {
     dispose() { 
         if (this.interval) {
             clearInterval(this.interval);
+            this.interval = null;
         }
-        disableDND().catch(console.error);
+        disableDND().catch(console.error); 
     }
 }

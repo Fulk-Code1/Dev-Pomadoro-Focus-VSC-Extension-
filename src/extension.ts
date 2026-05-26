@@ -69,9 +69,14 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.commands.registerCommand('devfocus.openSettings', () => {
             openSettingsPanel(context, () => {
-                if (timer.getPhase() === 'idle') {
-                    timer.reset();
-                }
+                // Вызываем сброс таймера
+                timer.reset();
+                // Принудительно обновляем UI сразу после сохранения настроек
+                sidebarProvider.updatePanel(
+                    timer.getPhase(),
+                    timer.getRemaining(),
+                    statsTracker.getStats()
+                );
             });
         })
     );
@@ -86,6 +91,7 @@ export function activate(context: vscode.ExtensionContext) {
         sidebarProvider.updateHistory(getHistory(context));
     }, 1000);
 
+    // Регистрация команды Старт/Пауза
     let toggleCommand = vscode.commands.registerCommand('devfocus.toggleTimer', () => {
         const currentPhase = timer.getPhase();
         if (currentPhase === 'idle') {
@@ -95,9 +101,28 @@ export function activate(context: vscode.ExtensionContext) {
         } else if (currentPhase === 'paused') {
             timer.resume(); statsTracker.startTracking();
         }
+        
+        // Мгновенное обновление UI при старте/паузе
+        sidebarProvider.updatePanel(
+            timer.getPhase(),
+            timer.getRemaining(),
+            statsTracker.getStats()
+        );
     });
-
     context.subscriptions.push(toggleCommand);
+
+    // Регистрация команды Сброса таймера
+    let resetCommand = vscode.commands.registerCommand('devfocus.resetTimer', () => {
+        timer.reset();
+        
+        // Принудительно и мгновенно обновляем интерфейс боковой панели при сбросе
+        sidebarProvider.updatePanel(
+            timer.getPhase(),
+            timer.getRemaining(),
+            statsTracker.getStats()
+        );
+    });
+    context.subscriptions.push(resetCommand);
 }
 
 export function deactivate() {}

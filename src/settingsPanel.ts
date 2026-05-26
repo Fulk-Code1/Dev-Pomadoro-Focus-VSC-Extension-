@@ -91,7 +91,7 @@ function getSettingsHtml(settings: any) {
 
         <div class="form-group checkbox-group">
             <input type="checkbox" id="dnd" ${settings.doNotDisturb ? 'checked' : ''}>
-            <label for="dnd">Блокировать уведомления (DND)</label>
+            <label for="dnd">Блокировать уведомления</label>
         </div>
 
         <button id="saveBtn">Сохранить</button>
