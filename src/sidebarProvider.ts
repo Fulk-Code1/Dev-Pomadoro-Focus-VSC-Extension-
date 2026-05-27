@@ -240,7 +240,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
 
             <script>
                 const vscode = acquireVsCodeApi();
-                let alertTimeout = null; // Переменная для таймера автозакрытия
+                let alertTimeout = null; 
                 
                 document.getElementById('toggleBtn').addEventListener('click', () => { vscode.postMessage({ command: 'toggleTimer' }); });
                 document.getElementById('resetBtn').addEventListener('click', () => { vscode.postMessage({ command: 'resetTimer' }); });
@@ -253,13 +253,11 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                     document.getElementById('historyChevron').innerText = historyOpen ? '▼' : '▶';
                 });
 
-                // Логика закрытия модального окна
                 const closeAlert = () => {
                     const overlay = document.getElementById('alert-overlay');
                     overlay.classList.remove('show');
                     setTimeout(() => overlay.style.display = 'none', 300);
                     
-                    // Очищаем таймер, чтобы он не сработал вхолостую
                     if (alertTimeout) {
                         clearTimeout(alertTimeout);
                         alertTimeout = null;
@@ -304,7 +302,6 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
                         overlay.style.display = 'flex';
                         setTimeout(() => overlay.classList.add('show'), 10);
 
-                        // Запускаем автозакрытие через 7 секунд
                         if (alertTimeout) {
                             clearTimeout(alertTimeout);
                         }
