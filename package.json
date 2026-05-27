@@ -2,7 +2,7 @@
   "name": "dev-focus-pomodoro",
   "displayName": "Dev Focus Pomodoro",
   "description": "Pomodoro timer with coding stats for VS Code",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "publisher": "DenisMal",
   "repository": {
     "type": "git",
@@ -10,7 +10,7 @@
   },
   "icon": "resources/tomato.png",
   "engines": {
-    "vscode": "^1.120.0"
+    "vscode": "^1.103.0"
   },
   "categories": [
     "Other"
@@ -58,7 +58,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.120.0",
+    "@types/vscode": "^1.103.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "22.x",
     "typescript-eslint": "^8.56.1",

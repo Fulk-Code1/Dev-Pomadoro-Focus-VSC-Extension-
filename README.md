@@ -1,7 +1,7 @@
 # Dev Focus Pomodoro 🍅
 
 <p align="center">
-  <img src="images/preview.png" alt="Dev Focus Pomodoro Logo" width="258" height="103">
+  <img src="images/preview.png" alt="Dev Focus Pomodoro Logo" width="1280" height="116">
 </p>
 
 Dev Focus Pomodoro is not just a timer. It's a stylish, editor-integrated productivity tool that helps maintain deep focus and automatically tracks your coding efficiency.

@@ -60,7 +60,7 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview) {
-        const tomatoUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'tomato.svg'));
+        const tomatoUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'resources', 'tomato.png'));
 
         return `<!DOCTYPE html>
         <html lang="en">
